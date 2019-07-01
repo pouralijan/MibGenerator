@@ -55,7 +55,18 @@ class ConfigReader(object):
         self.config.read(configfile)
 
     def get_scalars(self) -> list:
-        return eval(self.config.get("DEFAULT", "Scalars"))
+        scalars_object_list = []
+        scalars = eval(self.config.get("DEFAULT", "Scalars"))
+        for scalar in scalars:
+            if "count" in scalar:
+                for i in range(int(scalar["count"])):
+                    scalar_object = ScalarObject(
+                        scalar["name_prefix"],
+                        scalar["type"], scalar["permission"],
+                        scalar["status"], scalar["parent"],
+                        scalar["description"])
+                    scalars_object_list.append(scalar_object)
+        return scalars_object_list
 
     def get_tables(self) -> list:
         tables = eval(self.config.get("DEFAULT", "Tables"))
@@ -73,16 +84,8 @@ class MibGenerator(object):
 
     def generate_scalars(self):
         if self.scalars:
-            for scalar in self.scalars:
-                if "count" in scalar:
-                    print(scalar["count"])
-                    for i in range(int(scalar["count"])):
-                        s = ScalarObject(scalar["name_prefix"],
-                                         scalar["type"], scalar["permission"],
-                                         scalar["status"], scalar["parent"],
-                                         scalar["description"])
-                        # TODO: Collect s to a list and return it.
-                        print(str(s))
+            for scalar_object in self.scalars:
+                print(scalar_object)
 
     def generate_tables(self):
         if self.tables:
