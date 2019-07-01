@@ -16,11 +16,9 @@ __status__ = "Production"
 
 
 class SnmpObject(object):
-    id = itertools.count(1)
 
     def __init__(self, name: str, object_type: str, permission: str,
                  status: str, parent: str, description: str):
-        self.id = next(self.id)
         self.name = "{}_{}".format(name, str(self.id))
         self.type = object_type
         self.permission = permission
@@ -30,6 +28,13 @@ class SnmpObject(object):
 
 
 class ScalarObject(SnmpObject):
+    id = itertools.count(1)
+
+    def __init__(self, name: str, object_type: str, permission: str,
+                 status: str, parent: str, description: str):
+        self.id = next(self.id)
+        super(ScalarObject, self).__init__(name, object_type, permission,
+                                           status, parent, description)
 
     def __str__(self):
         return MibGeneratorTemplate.scalarObjectTemplate.format(
