@@ -49,10 +49,35 @@ class ScalarObject(SnmpObject):
             curlyBracketClose="}")
 
 
+class Imports(object):
+    def __init__(self, modules: list, section: str):
+        self.modules = modules
+        self.chunked_module = [modules[x:x+2]
+                               for x in range(0, len(modules), 2)]
+        self.separated_module = []
+        for chunk in self.chunked_module:
+            self.separated_module.append(",".join(chunk))
+        self.section = section
+
+    def __str__(self):
+        return MibGeneratorTemplate.importTemplates.format(
+            modules="\n\t".join(self.separated_module),
+            section=self.section)
+
+
 class ConfigReader(object):
     def __init__(self, configfile: str):
         self.config = configparser.ConfigParser()
         self.config.read(configfile)
+
+    def get_imports(self) -> list:
+        import_object_list = []
+        imports = eval(self.config.get("DEFAULT", "Imports"))
+        for import_ in imports:
+            import_object = Imports(import_["modules"], import_["from"])
+            import_object_list.append(import_object)
+
+        return import_object_list
 
     def get_scalars(self) -> list:
         scalars_object_list = []
@@ -77,10 +102,17 @@ class ConfigReader(object):
 class MibGenerator(object):
     def __init__(self):
         config = ConfigReader("../configs/sample.ini")
+        self.imports_section = config.get_imports()
         self.scalars = config.get_scalars()
         self.tables = config.get_tables()
+        self.generate_imports_section()
         self.generate_scalars()
         self.generate_tables()
+
+    def generate_imports_section(self):
+        if self.imports_section:
+            for import_ in self.imports_section:
+                print(import_)
 
     def generate_scalars(self):
         if self.scalars:

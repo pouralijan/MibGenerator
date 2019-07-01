@@ -14,7 +14,7 @@ snmpFileTemplate = """{sectionName} DEFINITIONS ::= BEGIN
 END
 """
 
-importTemplates = """IMPORTS {modules} FROM {section}"""
+importTemplates = """IMPORTS {modules} FROM {section};"""
 
 moduleIdentityTemplate = """{moduleName} MODULE-IDENTITY
     LAST-UPDATED "{lastUpdate}"
