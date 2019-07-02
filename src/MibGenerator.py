@@ -15,6 +15,31 @@ __email__ = "pouralijan@gmail.com"
 __status__ = "Production"
 
 
+class ModuleIdentity(object):
+    id = itertools.count(1)
+
+    def __init__(self, name: str, last_update: str, organization: str,
+                 contact_info: str, description: str, revision: str,
+                 parent: str):
+        self.id = next(self.id)
+        self.name = name
+        self.last_update = last_update
+        self.organization = organization
+        self.contact_info = contact_info
+        self.description = description
+        self.revision = revision
+        self.parent = parent
+
+    def __str__(self):
+        return MibGeneratorTemplate.moduleIdentityTemplate.format(
+            moduleName=self.name, lastUpdate=self.last_update,
+            organization=self.organization, contactInfo=self.contact_info,
+            description=self.description, revision=self.revision,
+            parentObject=self.parent, objectID=self.id,
+            curlyBracketOpen="{",
+            curlyBracketClose="}")
+
+
 class SnmpObject(object):
 
     def __init__(self, name: str, object_type: str, permission: str,
@@ -70,6 +95,20 @@ class ConfigReader(object):
         self.config = configparser.ConfigParser()
         self.config.read(configfile)
 
+    def get_section_name(self):
+        return eval(self.config.get("DEFAULT", "SectionName"))
+
+    def get_module_identity(self):
+        module_identity = eval(self.config.get("DEFAULT", "ModuleIdentity"))
+        return ModuleIdentity(module_identity["name"],
+                              module_identity["last_update"],
+                              module_identity["organization"],
+                              module_identity["contact_info"],
+                              module_identity["description"],
+                              module_identity["revision"],
+                              module_identity["parent"],
+                              )
+
     def get_imports(self) -> list:
         import_object_list = []
         imports = eval(self.config.get("DEFAULT", "Imports"))
@@ -102,28 +141,23 @@ class ConfigReader(object):
 class MibGenerator(object):
     def __init__(self):
         config = ConfigReader("../configs/sample.ini")
-        self.imports_section = config.get_imports()
+        self.section_name = config.get_section_name()
+        self.imports = config.get_imports()
+        self.module_identity = config.get_module_identity()
         self.scalars = config.get_scalars()
         self.tables = config.get_tables()
-        self.generate_imports_section()
-        self.generate_scalars()
-        self.generate_tables()
 
-    def generate_imports_section(self):
-        if self.imports_section:
-            for import_ in self.imports_section:
-                print(import_)
-
-    def generate_scalars(self):
-        if self.scalars:
-            for scalar_object in self.scalars:
-                print(scalar_object)
-
-    def generate_tables(self):
-        if self.tables:
-            for table in self.tables:
-                print(table)
+    def __str__(self):
+        return MibGeneratorTemplate.snmpFileTemplate.format(
+            sectionName=self.section_name,
+            imports="\n".join([str(import_) for import_ in self.imports]),
+            moduleIdentity=str(self.module_identity),
+            topLevelStructure="# TODO: Fix top level structure",
+            scalars="\n".join([str(scalars) for scalars in self.scalars]),
+            tables="# TODO: Fix tables",
+            notification="# TODO: Fix notification",
+        )
 
 
 if __name__ == "__main__":
-    MibGenerator()
+    print(MibGenerator())
