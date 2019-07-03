@@ -40,6 +40,23 @@ class ModuleIdentity(object):
             curlyBracketClose="}")
 
 
+class ObjectIdentitier(object):
+    id = itertools.count(1)
+
+    def __init__(self, name: str, parent: str):
+        self.id = next(self.id)
+        self.name = name
+        self.parent = parent
+
+    def __str__(self):
+        return MibGeneratorTemplate.objectIdentifierTemplate.format(
+            objectName=self.name,
+            parentObject=self.parent,
+            objectID=self.id,
+            curlyBracketOpen="{",
+            curlyBracketClose="}")
+
+
 class SnmpObject(object):
 
     def __init__(self, name: str, object_type: str, permission: str,
@@ -118,6 +135,16 @@ class ConfigReader(object):
 
         return import_object_list
 
+    def get_object_identifier(self) -> list:
+        object_identifier_list = []
+        object_identifier = eval(
+            self.config.get("DEFAULT", "ObjectIdentifirer"))
+
+        for object_ in object_identifier:
+            o = ObjectIdentitier(object_["name"], object_["parent"])
+            object_identifier_list.append(o)
+        return object_identifier_list
+
     def get_scalars(self) -> list:
         scalars_object_list = []
         scalars = eval(self.config.get("DEFAULT", "Scalars"))
@@ -139,20 +166,28 @@ class ConfigReader(object):
 
 
 class MibGenerator(object):
-    def __init__(self):
+    def __init__(self, file_path: str):
+        self.file_path = file_path
         config = ConfigReader("../configs/sample.ini")
         self.section_name = config.get_section_name()
         self.imports = config.get_imports()
         self.module_identity = config.get_module_identity()
+        self.object_identifier = config.get_object_identifier()
         self.scalars = config.get_scalars()
         self.tables = config.get_tables()
+
+    def save(self):
+        file_name = open(self.file_path, "w+")
+        file_name.write(str(self))
+        file_name.close()
 
     def __str__(self):
         return MibGeneratorTemplate.snmpFileTemplate.format(
             sectionName=self.section_name,
             imports="\n".join([str(import_) for import_ in self.imports]),
             moduleIdentity=str(self.module_identity),
-            topLevelStructure="# TODO: Fix top level structure",
+            topLevelStructure="\n".join(
+                [str(object_) for object_ in self.object_identifier]),
             scalars="\n".join([str(scalars) for scalars in self.scalars]),
             tables="# TODO: Fix tables",
             notification="# TODO: Fix notification",
@@ -160,4 +195,7 @@ class MibGenerator(object):
 
 
 if __name__ == "__main__":
-    print(MibGenerator())
+    mg = MibGenerator("./test.txt")
+    mg.save()
+
+
