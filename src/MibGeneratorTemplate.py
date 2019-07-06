@@ -26,8 +26,8 @@ moduleIdentityTemplate = """{moduleName} MODULE-IDENTITY
     ::= {curlyBracketOpen} {parentObject} {objectID} {curlyBracketClose}
 """
 
-objectIdentifierTemplate = """{objectName} OBJECT IDENTIFIER 
-                ::= {curlyBracketOpen} {parentObject} {objectID} {curlyBracketClose}"""
+objectIdentifierTemplate = """{objectName} OBJECT IDENTIFIER
+    ::= {curlyBracketOpen} {parentObject} {objectID} {curlyBracketClose}"""
 
 scalarObjectTemplate = """{objectName} OBJECT-TYPE
     SYNTAX      {objectType}
