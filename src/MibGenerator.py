@@ -16,19 +16,26 @@ __status__ = "Production"
 
 
 class ModuleIdentity(object):
-    id = itertools.count(1)
+    _id_counter = itertools.count(1)
+    _ids = {}
 
     def __init__(self, name: str, last_update: str, organization: str,
                  contact_info: str, description: str, revision: str,
                  parent: str):
-        self.id = next(self.id)
+
+        self.parent = parent
+
+        if parent not in self._ids:
+            self._id_counter = itertools.count(1)
+            self._ids[self.parent] = self._id_counter
+
+        self.id = next(self._ids[self.parent])
         self.name = name
         self.last_update = last_update
         self.organization = organization
         self.contact_info = contact_info
         self.description = description
         self.revision = revision
-        self.parent = parent
 
     def __str__(self):
         return MibGeneratorTemplate.moduleIdentityTemplate.format(
@@ -41,12 +48,19 @@ class ModuleIdentity(object):
 
 
 class ObjectIdentitier(object):
-    id = itertools.count(1)
+    _id_counter = itertools.count(1)
+    _ids = {}
 
     def __init__(self, name: str, parent: str):
-        self.id = next(self.id)
         self.name = name
         self.parent = parent
+
+        if parent not in self._ids:
+            self._id_counter = itertools.count(1)
+            self._ids[self.parent] = self._id_counter
+
+        self.parent = parent
+        self.id = next(self._ids[self.parent])
 
     def __str__(self):
         return MibGeneratorTemplate.objectIdentifierTemplate.format(
@@ -58,25 +72,27 @@ class ObjectIdentitier(object):
 
 
 class SnmpObject(object):
+    _id_counter = itertools.count(1)
+    _ids = {}
 
     def __init__(self, name: str, object_type: str, permission: str,
                  status: str, parent: str, description: str):
+
+        self.parent = parent
+
+        if parent not in self._ids:
+            self._id_counter = itertools.count(1)
+            self._ids[self.parent] = self._id_counter
+
+        self.id = next(self._ids[self.parent])
         self.name = "{}_{}".format(name, str(self.id))
         self.type = object_type
         self.permission = permission
         self.status = status
-        self.parent = parent
         self.description = description
 
 
 class ScalarObject(SnmpObject):
-    id = itertools.count(1)
-
-    def __init__(self, name: str, object_type: str, permission: str,
-                 status: str, parent: str, description: str):
-        self.id = next(self.id)
-        super(ScalarObject, self).__init__(name, object_type, permission,
-                                           status, parent, description)
 
     def __str__(self):
         return MibGeneratorTemplate.scalarObjectTemplate.format(
@@ -197,5 +213,3 @@ class MibGenerator(object):
 if __name__ == "__main__":
     mg = MibGenerator("./test.txt")
     mg.save()
-
-

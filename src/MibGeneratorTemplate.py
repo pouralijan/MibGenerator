@@ -1,4 +1,5 @@
 snmpFileTemplate = """{sectionName} DEFINITIONS ::= BEGIN
+
 {imports}
 
 {moduleIdentity}
